@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Screenshot 3 – Image Magnification Lens</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{width:1280px;height:800px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#dee1e6}
+
+.tab-strip{height:40px;background:#dee1e6;display:flex;align-items:flex-end;padding:0 0 0 72px}
+.tab{height:32px;min-width:220px;background:#fff;border-radius:8px 8px 0 0;display:flex;align-items:center;padding:0 14px;gap:8px;font-size:12px;color:#333}
+.tab-x{margin-left:auto;font-size:10px;color:#999}
+.nav-bar{height:44px;background:#f1f3f4;display:flex;align-items:center;padding:0 16px;gap:10px;border-bottom:1px solid #e0e0e0}
+.nav-btn{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#555;font-size:14px;font-weight:bold;background:#e8eaed}
+.address-bar{flex:1;height:32px;background:#fff;border-radius:16px;border:1px solid #dadce0;display:flex;align-items:center;padding:0 14px;gap:8px;font-size:13px;color:#333}
+.ext-btn{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(59,130,246,.4)}
+
+/* Page */
+.page{height:716px;background:#1a1f2e;position:relative;overflow:hidden}
+
+/* Gallery header */
+.gallery-header{padding:28px 60px 20px;display:flex;align-items:center;justify-content:space-between}
+.gallery-title{font-size:22px;font-weight:700;color:#f1f5f9}
+.gallery-sub{font-size:13px;color:#64748b;margin-top:3px}
+.gallery-btn{padding:8px 16px;background:linear-gradient(135deg,#1e3a8a,#312e81);border:1.5px solid #3b82f6;border-radius:8px;color:#bfdbfe;font-size:12px;font-weight:600}
+
+/* Main landscape image */
+.landscape{position:relative;margin:0 60px;border-radius:16px;overflow:hidden;height:440px}
+.landscape svg{width:100%;height:100%}
+
+/* Image caption strip */
+.caption{padding:14px 60px 0;display:flex;justify-content:space-between;align-items:center}
+.caption-text{font-size:13px;color:#64748b}
+.caption-meta{font-size:12px;color:#334155}
+
+/* Circular lens – positioned over the peaks/sky area */
+.lens{
+  position:absolute;
+  left:560px;top:162px;
+  width:240px;height:240px;
+  border-radius:50%;
+  border:3px solid rgba(255,255,255,.9);
+  overflow:hidden;
+  box-shadow:0 0 0 1.5px rgba(0,0,0,.25),0 20px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.15);
+  pointer-events:none;
+}
+/* Inside lens: same SVG but zoomed – use a scaled copy with svg viewBox trick */
+.lens-inner{
+  position:absolute;
+  inset:0;
+}
+.lens-inner svg{
+  width:600px;height:600px; /* 2.5x of 240 */
+  position:absolute;
+  /* shift so center of lens (560+120, 230+120)=(680,350) maps to (120,120) inside lens */
+  /* SVG is for a 1160px wide image starting at left:60, top:128(header+gallery margin) in page */
+  /* lens is at page(560,162+84browser=246), in .page at (560,162) */
+  /* image in .page starts at (60, 68+20=88 from page top with header 68px) */
+  /* approximate: shift the 600x600 svg so that page point (680, 282) lands at (120,120) inside lens */
+  left:-480px;top:-345px;
+}
+
+/* Cursor to the right of lens */
+.cursor{position:absolute;left:819px;top:273px;pointer-events:none}
+
+/* Lens badge */
+.lens-badge{
+  position:absolute;left:560px;top:128px;
+  background:linear-gradient(135deg,#1e3a8a,#312e81);
+  color:#bfdbfe;font-size:11px;font-weight:600;
+  padding:3px 10px;border-radius:6px;
+  box-shadow:0 2px 8px rgba(0,0,0,.35);
+  letter-spacing:.3px;
+}
+
+/* Thumbnail strip at bottom */
+.thumbs{position:absolute;bottom:0;left:0;right:0;padding:12px 60px;display:flex;gap:10px;background:linear-gradient(to top, rgba(10,12,20,.95), transparent)}
+.thumb{width:110px;height:66px;border-radius:8px;overflow:hidden;border:2px solid rgba(255,255,255,.08);flex-shrink:0}
+.thumb.active{border-color:#3b82f6;box-shadow:0 0 0 2px rgba(59,130,246,.35)}
+.thumb svg{width:110px;height:66px}
+</style>
+</head>
+<body>
+
+<!-- Browser chrome -->
+<div class="tab-strip">
+  <div class="tab">
+    <svg width="14" height="14" viewBox="0 0 48 48" fill="none"><circle cx="20" cy="20" r="13" stroke="#60a5fa" stroke-width="5"/><line x1="30" y1="30" x2="42" y2="42" stroke="#8b5cf6" stroke-width="5" stroke-linecap="round"/></svg>
+    Alpine Landscapes – Photo Gallery
+    <div class="tab-x">✕</div>
+  </div>
+</div>
+<div class="nav-bar">
+  <div class="nav-btn">‹</div>
+  <div class="nav-btn" style="opacity:.35">›</div>
+  <div class="nav-btn" style="font-size:16px">↻</div>
+  <div class="address-bar">
+    <span style="font-size:11px;color:#5f6368">🔒</span>
+    <span>unsplash.com/collections/alpine-landscapes</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-left:4px">
+    <div class="ext-btn">
+      <svg viewBox="0 0 48 48" width="17" height="17" fill="none"><circle cx="20" cy="20" r="13" stroke="white" stroke-width="5"/><line x1="30" y1="30" x2="42" y2="42" stroke="white" stroke-width="5" stroke-linecap="round"/></svg>
+    </div>
+  </div>
+</div>
+
+<!-- Page -->
+<div class="page">
+  <!-- Header -->
+  <div class="gallery-header">
+    <div><div class="gallery-title">Alpine Landscapes</div><div class="gallery-sub">46 high-resolution photographs</div></div>
+    <div class="gallery-btn">Download All</div>
+  </div>
+
+  <!-- Main landscape SVG illustration -->
+  <div class="landscape">
+    <svg viewBox="0 0 1160 440" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <!-- Sky gradient -->
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0ea5e9"/><stop offset="60%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#7dd3fc"/></linearGradient>
+        <linearGradient id="mtn1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#64748b"/></linearGradient>
+        <linearGradient id="mtn2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7a8fa0"/><stop offset="100%" stop-color="#4b6070"/></linearGradient>
+        <linearGradient id="mtn3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e2e8f0"/><stop offset="30%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#3d5a6a"/></linearGradient>
+        <linearGradient id="forest" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#166534"/><stop offset="100%" stop-color="#14532d"/></linearGradient>
+        <linearGradient id="meadow" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4ade80"/><stop offset="100%" stop-color="#16a34a"/></linearGradient>
+        <radialGradient id="sun" cx="50%" cy="50%"><stop offset="0%" stop-color="#fef9c3"/><stop offset="60%" stop-color="#fde68a" stop-opacity=".6"/><stop offset="100%" stop-color="#fde68a" stop-opacity="0"/></radialGradient>
+      </defs>
+      <!-- Sky -->
+      <rect width="1160" height="440" fill="url(#sky)"/>
+      <!-- Sun glow -->
+      <circle cx="200" cy="80" r="60" fill="url(#sun)" opacity=".8"/>
+      <circle cx="200" cy="80" r="22" fill="#fff9e6"/>
+      <!-- Clouds -->
+      <ellipse cx="340" cy="70" rx="70" ry="25" fill="white" opacity=".85"/>
+      <ellipse cx="390" cy="60" rx="55" ry="20" fill="white" opacity=".9"/>
+      <ellipse cx="310" cy="75" rx="40" ry="18" fill="white" opacity=".8"/>
+      <ellipse cx="750" cy="95" rx="90" ry="28" fill="white" opacity=".75"/>
+      <ellipse cx="810" cy="82" rx="65" ry="22" fill="white" opacity=".8"/>
+      <ellipse cx="1050" cy="55" rx="80" ry="24" fill="white" opacity=".7"/>
+      <!-- Far mountains -->
+      <polygon points="0,280 180,80 360,280" fill="url(#mtn1)" opacity=".6"/>
+      <polygon points="200,280 420,60 640,280" fill="url(#mtn1)" opacity=".7"/>
+      <polygon points="580,280 800,40 1020,280" fill="url(#mtn1)" opacity=".65"/>
+      <polygon points="880,280 1100,90 1160,200 1160,280" fill="url(#mtn1)" opacity=".6"/>
+      <!-- Snow caps -->
+      <polygon points="180,80 195,120 165,120" fill="white" opacity=".9"/>
+      <polygon points="420,60 440,105 400,105" fill="white" opacity=".95"/>
+      <polygon points="800,40 825,95 775,95" fill="white" opacity=".9"/>
+      <polygon points="1100,90 1118,128 1082,128" fill="white" opacity=".85"/>
+      <!-- Mid mountains -->
+      <polygon points="0,320 250,140 500,320" fill="url(#mtn2)"/>
+      <polygon points="320,320 600,110 880,320" fill="url(#mtn3)"/>
+      <polygon points="700,320 960,130 1160,250 1160,320" fill="url(#mtn2)"/>
+      <!-- Snow mid -->
+      <polygon points="250,140 268,175 232,175" fill="white" opacity=".9"/>
+      <polygon points="600,110 622,155 578,155" fill="white" opacity=".95"/>
+      <polygon points="960,130 980,168 940,168" fill="white" opacity=".9"/>
+      <!-- Forest band -->
+      <rect x="0" y="300" width="1160" height="80" fill="url(#forest)" rx="0"/>
+      <!-- Tree silhouettes -->
+      <polygon points="50,300 60,260 70,300" fill="#14532d"/>
+      <polygon points="90,300 100,255 110,300" fill="#14532d"/>
+      <polygon points="130,300 142,262 154,300" fill="#14532d"/>
+      <polygon points="200,300 212,250 224,300" fill="#14532d"/>
+      <polygon points="240,300 252,265 264,300" fill="#14532d"/>
+      <polygon points="900,300 912,252 924,300" fill="#14532d"/>
+      <polygon points="950,300 964,258 978,300" fill="#14532d"/>
+      <polygon points="1010,300 1022,248 1034,300" fill="#14532d"/>
+      <polygon points="1070,300 1084,260 1098,300" fill="#14532d"/>
+      <!-- Meadow foreground -->
+      <rect x="0" y="370" width="1160" height="70" fill="url(#meadow)"/>
+      <!-- River/lake -->
+      <ellipse cx="580" cy="390" rx="140" ry="22" fill="#60a5fa" opacity=".6"/>
+      <ellipse cx="580" cy="390" rx="100" ry="14" fill="#93c5fd" opacity=".5"/>
+      <!-- Wildflowers -->
+      <circle cx="80" cy="375" r="4" fill="#f472b6"/>
+      <circle cx="120" cy="380" r="3" fill="#fbbf24"/>
+      <circle cx="160" cy="372" r="4" fill="#f472b6"/>
+      <circle cx="300" cy="378" r="3" fill="#a78bfa"/>
+      <circle cx="420" cy="373" r="4" fill="#fbbf24"/>
+      <circle cx="760" cy="378" r="3" fill="#f472b6"/>
+      <circle cx="820" cy="372" r="4" fill="#a78bfa"/>
+      <circle cx="1000" cy="376" r="3" fill="#fbbf24"/>
+      <circle cx="1060" cy="380" r="4" fill="#f472b6"/>
+    </svg>
+
+    <!-- Circular lens overlay (over the main mountain + sky area) -->
+    <div class="lens">
+      <div class="lens-inner">
+        <!-- Same SVG with adjusted position/scale to show zoomed area around (680,282) of original -->
+        <svg viewBox="450 60 192 192" width="240" height="240" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          <!-- Sky gradient -->
+          <defs>
+            <linearGradient id="sky2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0ea5e9"/><stop offset="60%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#7dd3fc"/></linearGradient>
+            <linearGradient id="mtn3b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e2e8f0"/><stop offset="30%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#3d5a6a"/></linearGradient>
+          </defs>
+          <rect x="0" y="0" width="1160" height="440" fill="url(#sky2)"/>
+          <ellipse cx="750" cy="95" rx="90" ry="28" fill="white" opacity=".75"/>
+          <ellipse cx="810" cy="82" rx="65" ry="22" fill="white" opacity=".8"/>
+          <polygon points="0,320 250,140 500,320" fill="#7a8fa0"/>
+          <polygon points="320,320 600,110 880,320" fill="url(#mtn3b)"/>
+          <polygon points="600,110 622,155 578,155" fill="white" opacity=".95"/>
+          <rect x="0" y="300" width="1160" height="80" fill="#166534"/>
+          <polygon points="200,300 212,250 224,300" fill="#14532d"/>
+          <polygon points="240,300 252,265 264,300" fill="#14532d"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Cursor to the right -->
+    <div class="cursor">
+      <svg width="22" height="28" viewBox="0 0 22 28" fill="none">
+        <path d="M2 2L2 22L7 17L11 26L14 24.5L10 15.5L17 15.5L2 2Z" fill="white" stroke="#333" stroke-width="1.2" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Badge outside landscape -->
+  <div class="lens-badge">2.5× zoom</div>
+
+  <!-- Caption -->
+  <div class="caption">
+    <div class="caption-text">Swiss Alps, Graubünden — photograph by Marco Venti</div>
+    <div class="caption-meta">1 / 46 &nbsp;·&nbsp; JPG 6240×4160</div>
+  </div>
+
+  <!-- Thumbnail strip -->
+  <div class="thumbs">
+    <div class="thumb active"><svg viewBox="450 100 300 180" preserveAspectRatio="xMidYMid slice"><rect width="1160" height="440" fill="#38bdf8"/><polygon points="320,320 600,110 880,320" fill="#94a3b8"/><rect y="300" width="1160" height="140" fill="#166534"/></svg></div>
+    <div class="thumb"><svg viewBox="0 100 400 250" preserveAspectRatio="xMidYMid slice"><rect width="1160" height="440" fill="#0ea5e9"/><polygon points="0,280 250,80 500,280" fill="#64748b"/><rect y="300" width="1160" height="140" fill="#14532d"/></svg></div>
+    <div class="thumb"><svg viewBox="600 50 400 280" preserveAspectRatio="xMidYMid slice"><rect width="1160" height="440" fill="#38bdf8"/><polygon points="580,320 800,60 1020,320" fill="#94a3b8"/><rect y="300" width="1160" height="140" fill="#166534"/></svg></div>
+    <div class="thumb"><svg viewBox="200 150 500 280" preserveAspectRatio="xMidYMid slice"><rect width="1160" height="440" fill="#7dd3fc"/><polygon points="200,320 420,130 640,320" fill="#64748b"/><rect y="350" width="1160" height="90" fill="#4ade80"/><ellipse cx="580" cy="390" rx="140" ry="22" fill="#60a5fa" opacity=".6"/></svg></div>
+    <div class="thumb"><svg viewBox="0 200 600 240" preserveAspectRatio="xMidYMid slice"><rect width="1160" height="440" fill="#0f172a"/><polygon points="180,320 300,160 420,320" fill="#1e293b"/><rect y="350" width="1160" height="90" fill="#14532d"/></svg></div>
+  </div>
+</div>
+
+</body>
+</html>
