@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Store Icon 128×128 – Export</title>
+<style>
+body{margin:0;background:#1a1a2e;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:20px;font-family:system-ui,sans-serif}
+canvas{border-radius:24px;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+button{padding:10px 24px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
+button:hover{filter:brightness(1.1)}
+p{color:#64748b;font-size:12px;margin:0}
+</style>
+</head>
+<body>
+<canvas id="icon" width="128" height="128"></canvas>
+<button onclick="download()">Download icon-128.png</button>
+<p>Also saved as icon-48.png and icon-96.png variants</p>
+<canvas id="c48" width="48" height="48" style="display:none"></canvas>
+<canvas id="c96" width="96" height="96" style="display:none"></canvas>
+
+<script>
+function drawIcon(canvas) {
+  const w = canvas.width, h = canvas.height;
+  const ctx = canvas.getContext("2d");
+  const s = w / 128; // scale factor
+
+  // ── Background: rounded square with dark gradient ──
+  const r = 22 * s;
+  ctx.beginPath();
+  ctx.moveTo(r, 0);
+  ctx.lineTo(w - r, 0);
+  ctx.quadraticCurveTo(w, 0, w, r);
+  ctx.lineTo(w, h - r);
+  ctx.quadraticCurveTo(w, h, w - r, h);
+  ctx.lineTo(r, h);
+  ctx.quadraticCurveTo(0, h, 0, h - r);
+  ctx.lineTo(0, r);
+  ctx.quadraticCurveTo(0, 0, r, 0);
+  ctx.closePath();
+
+  // Background gradient: dark navy to deep indigo
+  const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+  bgGrad.addColorStop(0,   "#0f172a");
+  bgGrad.addColorStop(0.5, "#12173a");
+  bgGrad.addColorStop(1,   "#1a1040");
+  ctx.fillStyle = bgGrad;
+  ctx.fill();
+
+  // Subtle inner glow
+  const glowGrad = ctx.createRadialGradient(w*0.38, h*0.35, 0, w*0.38, h*0.35, w*0.65);
+  glowGrad.addColorStop(0,   "rgba(99,102,241,0.18)");
+  glowGrad.addColorStop(0.5, "rgba(59,130,246,0.07)");
+  glowGrad.addColorStop(1,   "rgba(0,0,0,0)");
+  ctx.fillStyle = glowGrad;
+  ctx.fill();
+
+  // ── Magnifying glass ──
+  const cx = 52 * s;   // lens center x
+  const cy = 52 * s;   // lens center y
+  const or = 30 * s;   // outer radius of glass ring
+  const ir = 20 * s;   // inner radius (lens aperture)
+  const ringW = 10 * s;
+
+  // LENS RING gradient (blue → purple)
+  const ringGrad = ctx.createLinearGradient(
+    cx - or, cy - or,
+    cx + or, cy + or
+  );
+  ringGrad.addColorStop(0,   "#60a5fa");
+  ringGrad.addColorStop(0.5, "#818cf8");
+  ringGrad.addColorStop(1,   "#a78bfa");
+
+  // Draw ring (annulus)
+  ctx.beginPath();
+  ctx.arc(cx, cy, or, 0, Math.PI * 2);
+  ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
+  ctx.closePath();
+  ctx.fillStyle = ringGrad;
+  ctx.fill();
+
+  // Lens glass fill (subtle shine)
+  const lensGrad = ctx.createRadialGradient(cx - 7*s, cy - 7*s, 0, cx, cy, ir);
+  lensGrad.addColorStop(0,   "rgba(255,255,255,0.18)");
+  lensGrad.addColorStop(0.5, "rgba(96,165,250,0.08)");
+  lensGrad.addColorStop(1,   "rgba(99,102,241,0.05)");
+  ctx.beginPath();
+  ctx.arc(cx, cy, ir, 0, Math.PI * 2);
+  ctx.fillStyle = lensGrad;
+  ctx.fill();
+
+  // Lens highlight arc (top-left glint)
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, ir - 2*s, -Math.PI * 0.85, -Math.PI * 0.25);
+  ctx.strokeStyle = "rgba(255,255,255,0.30)";
+  ctx.lineWidth = 2.5 * s;
+  ctx.lineCap = "round";
+  ctx.stroke();
+  ctx.restore();
+
+  // Handle: thick rounded line from bottom-right of ring
+  const hx1 = cx + or * Math.cos(Math.PI * 0.78);
+  const hy1 = cy + or * Math.sin(Math.PI * 0.78);
+  const hx2 = 103 * s;
+  const hy2 = 103 * s;
+
+  const handleGrad = ctx.createLinearGradient(hx1, hy1, hx2, hy2);
+  handleGrad.addColorStop(0,   "#818cf8");
+  handleGrad.addColorStop(0.5, "#a78bfa");
+  handleGrad.addColorStop(1,   "#6d28d9");
+
+  ctx.beginPath();
+  ctx.moveTo(hx1, hy1);
+  ctx.lineTo(hx2, hy2);
+  ctx.strokeStyle = handleGrad;
+  ctx.lineWidth = 12 * s;
+  ctx.lineCap = "round";
+  ctx.stroke();
+
+  // Handle end cap glow
+  const capGrad = ctx.createRadialGradient(hx2, hy2, 0, hx2, hy2, 9*s);
+  capGrad.addColorStop(0,   "rgba(167,139,250,0.55)");
+  capGrad.addColorStop(1,   "rgba(109,40,217,0)");
+  ctx.beginPath();
+  ctx.arc(hx2, hy2, 9 * s, 0, Math.PI * 2);
+  ctx.fillStyle = capGrad;
+  ctx.fill();
+
+  // Ring drop shadow (drawn before/under — redo on top as glow border)
+  ctx.save();
+  ctx.shadowColor = "rgba(96,165,250,0.45)";
+  ctx.shadowBlur = 16 * s;
+  ctx.beginPath();
+  ctx.arc(cx, cy, or, 0, Math.PI * 2);
+  ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
+  ctx.closePath();
+  ctx.fillStyle = "transparent";
+  ctx.strokeStyle = "rgba(99,102,241,0.6)";
+  ctx.lineWidth = 1.5 * s;
+  ctx.stroke();
+  ctx.restore();
+}
+
+const main = document.getElementById("icon");
+drawIcon(main);
+
+const c48 = document.getElementById("c48");
+drawIcon(c48);
+
+const c96 = document.getElementById("c96");
+drawIcon(c96);
+
+function downloadCanvas(canvas, filename) {
+  const link = document.createElement("a");
+  link.download = filename;
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+}
+
+function download() {
+  downloadCanvas(main,  "icon-128.png");
+  setTimeout(() => downloadCanvas(c96, "icon-96.png"),  300);
+  setTimeout(() => downloadCanvas(c48, "icon-48.png"),  600);
+}
+</script>
+</body>
+</html>
