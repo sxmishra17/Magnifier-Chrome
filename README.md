@@ -23,6 +23,8 @@ extensions/
 
 Chrome extension for magnifying text, images, and PDFs with a hover lens.
 
+A Chrome extension that provides a customizable magnifier lens to enlarge text and images on web pages for better readability.
+
 - Project folder: [extensions/magnifier-chrome](./extensions/magnifier-chrome)
 - Privacy policy: [docs/privacy-policy.html](./docs/privacy-policy.html)
 - GitHub Pages URL: `https://sxmishra17.github.io/Browser-Extensions/privacy-policy.html`
