@@ -151,7 +151,8 @@
     contentEl.textContent = "";
     contentEl.style.fontSize = "0";
 
-    lensEl.style.backgroundImage = `url("${src}")`;
+    const safeSrc = src.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    lensEl.style.backgroundImage = `url("${safeSrc}")`;
     lensEl.style.backgroundSize = `${scaledW}px ${scaledH}px`;
     lensEl.style.backgroundPosition = `${bgX}px ${bgY}px`;
     lensEl.style.backgroundRepeat = "no-repeat";

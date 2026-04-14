@@ -9,6 +9,7 @@
   const pdfContainer = document.getElementById("pdfContainer");
 
   let activeObjectUrl = null;
+  let activePdfDoc = null;
   let renderToken = 0;
 
   pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -27,6 +28,7 @@
     try {
       const loadingTask = pdfjsLib.getDocument(activeObjectUrl);
       const pdf = await loadingTask.promise;
+      activePdfDoc = pdf;
 
       if (token !== renderToken) return;
 
@@ -72,6 +74,11 @@
 
   function clearPages() {
     pdfContainer.replaceChildren();
+
+    if (activePdfDoc) {
+      activePdfDoc.destroy();
+      activePdfDoc = null;
+    }
 
     if (activeObjectUrl) {
       URL.revokeObjectURL(activeObjectUrl);

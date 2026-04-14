@@ -60,7 +60,10 @@ Search **"Magnifier"** on the [Chrome Web Store](https://chrome.google.com/webst
 │   └── lib/
 │       ├── pdf.min.js     # PDF.js library
 │       └── pdf.worker.min.js
-└── icons/                 # Extension icons (48, 96px)
+├── icons/                 # Extension icons (48, 96, 128px)
+└── docs/
+    ├── index.html         # GitHub Pages landing page
+    └── privacy-policy.html
 ```
 
 ---
@@ -75,7 +78,9 @@ Search **"Magnifier"** on the [Chrome Web Store](https://chrome.google.com/webst
 
 ## Privacy
 
-**No data leaves your device.** Settings are stored locally using `chrome.storage.local`. No external network requests are made.
+**No data leaves your device.** Settings are stored locally using `chrome.storage.sync`. No external network requests are made.
+
+[Full Privacy Policy](https://sxmishra17.github.io/Magnifier-Chrome/privacy-policy.html)
 
 ---
 

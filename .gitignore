@@ -1,0 +1,17 @@
+# Build artifacts
+*.zip
+*.crx
+
+# Screenshots / asset generators (development tools, not part of the extension)
+screenshots/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+*.swp
+*.swo
+*~
