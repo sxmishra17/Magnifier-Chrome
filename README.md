@@ -92,4 +92,4 @@ Search **"Magnifier"** on the [Chrome Web Store](https://chrome.google.com/webst
 
 ## License
 
-All Rights Reserved — free to use, modify, and distribute.
+All Rights Reserved.
