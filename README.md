@@ -93,3 +93,7 @@ Search **"Magnifier"** on the [Chrome Web Store](https://chrome.google.com/webst
 ## License
 
 All Rights Reserved.
+
+---
+
+Developed by **Satish Mishra**, **Yuvatech Solutions USA, LLC**
