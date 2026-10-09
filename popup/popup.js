@@ -36,48 +36,58 @@
     }
   }
 
+  function getTargetTab(cb) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs && tabs[0] && tabs[0].id) {
+        cb(tabs[0]);
+      } else {
+        chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs2) => {
+          cb(tabs2 && tabs2[0] ? tabs2[0] : null);
+        });
+      }
+    });
+  }
+
   // ── Load current settings on popup open ─────────────────────────────────
 
-  chrome.tabs
-    .query({ active: true, currentWindow: true })
-    .then((tabs) => {
-      const tabId = tabs && tabs[0] ? tabs[0].id : null;
-      const fromStorage = chrome.storage.sync.get({
-        zoom: 1.5,
-        lensSize: "medium",
-        lensPosition: "right",
-        lensShape: "rect",
-        language: "auto"
-      });
-      const fromBg = tabId != null
-        ? chrome.runtime.sendMessage({ type: "get-tab-enabled", tabId }).catch(() => ({ enabled: false }))
-        : Promise.resolve({ enabled: false });
+  getTargetTab((tab) => {
+    const tabId = tab ? tab.id : null;
+    const fromStorage = chrome.storage.sync.get({
+      zoom: 1.5,
+      lensSize: "medium",
+      lensPosition: "right",
+      lensShape: "rect",
+      language: "auto",
+      enabled: false
+    });
+    const fromBg = tabId != null
+      ? chrome.runtime.sendMessage({ type: "get-tab-enabled", tabId }).catch(() => ({ enabled: false }))
+      : Promise.resolve({ enabled: false });
 
-      return Promise.all([fromStorage, fromBg]).then(([s, bg]) => {
-        currentSettings = s;
+    Promise.all([fromStorage, fromBg]).then(([s, bg]) => {
+      currentSettings = s;
 
-        // Apply language
-        if (window.I18N) {
-          window.I18N.setLanguage(s.language || "auto");
-          if (langSelect) langSelect.value = s.language || "auto";
-          applyTranslations();
-        }
+      // Apply language
+      if (window.I18N) {
+        window.I18N.setLanguage(s.language || "auto");
+        if (langSelect) langSelect.value = s.language || "auto";
+        applyTranslations();
+      }
 
-        zoomSlider.value      = s.zoom;
-        enableToggle.checked  = !!(bg && bg.enabled);
-        zoomBadge.textContent = formatZoom(s.zoom);
-        updateSliderTrack(s.zoom);
+      zoomSlider.value      = s.zoom;
+      enableToggle.checked  = (bg && bg.enabled !== undefined) ? !!bg.enabled : !!s.enabled;
+      zoomBadge.textContent = formatZoom(s.zoom);
+      updateSliderTrack(s.zoom);
 
-        const sizeInt       = SIZE_TO_INT[s.lensSize] || 2;
-        sizeSlider.value    = sizeInt;
-        updateSizeBadge(sizeInt);
-        updateSizeTrack(sizeInt);
+      const sizeInt       = SIZE_TO_INT[s.lensSize] || 2;
+      sizeSlider.value    = sizeInt;
+      updateSizeBadge(sizeInt);
+      updateSizeTrack(sizeInt);
 
-        posRadios.forEach((r)  => { r.checked = r.value === s.lensPosition; });
-        shapeRadios.forEach((r) => { r.checked = r.value === s.lensShape; });
-      });
-    })
-    .catch(() => {});
+      posRadios.forEach((r)  => { r.checked = r.value === s.lensPosition; });
+      shapeRadios.forEach((r) => { r.checked = r.value === s.lensShape; });
+    }).catch(() => {});
+  });
 
   // ── Apply Translations ──────────────────────────────────────────────────
 
@@ -166,20 +176,57 @@
     });
   });
 
-  // ── Enable / disable toggle (tab-local) ──────────────────────────────────
+  // ── Enable / disable toggle ──────────────────────────────────────────────
 
   enableToggle.addEventListener("change", () => {
-    chrome.tabs
-      .query({ active: true, currentWindow: true })
-      .then((tabs) => {
-        if (!tabs || !tabs[0]) return;
-        chrome.runtime.sendMessage({
-          type: "set-tab-enabled",
-          tabId: tabs[0].id,
-          enabled: enableToggle.checked,
-        }).catch(() => {});
-      })
-      .catch(() => {});
+    const isEnabled = enableToggle.checked;
+    currentSettings.enabled = isEnabled;
+
+    // 1. Sync to storage
+    chrome.storage.sync.set({ enabled: isEnabled }).catch(() => {});
+
+    // 2. Direct message & script injection fallback for target tab
+    getTargetTab((tab) => {
+      if (!tab || !tab.id) return;
+      const tabId = tab.id;
+
+      // Send to content script directly
+      chrome.tabs.sendMessage(tabId, {
+        type: "settings-update",
+        patch: { enabled: isEnabled }
+      }).catch(() => {
+        // If content script was not yet injected, inject dynamically
+        if (chrome.scripting) {
+          chrome.scripting.executeScript({
+            target: { tabId },
+            files: ["content.js"]
+          }).then(() => {
+            chrome.scripting.insertCSS({
+              target: { tabId },
+              files: ["content.css"]
+            }).catch(() => {});
+            chrome.tabs.sendMessage(tabId, {
+              type: "settings-update",
+              patch: { enabled: isEnabled }
+            }).catch(() => {});
+          }).catch(() => {});
+        }
+      });
+
+      // Also sync background state
+      chrome.runtime.sendMessage({
+        type: "set-tab-enabled",
+        tabId,
+        enabled: isEnabled
+      }).catch(() => {});
+    });
+
+    // 3. When turning ON, close popup after a brief moment so user immediately sees the lens
+    if (isEnabled) {
+      setTimeout(() => {
+        window.close();
+      }, 180);
+    }
   });
 
   // ── Open custom PDF viewer ─────────────────────────────────────────────
@@ -255,18 +302,15 @@
   function saveAndSend(key, value) {
     chrome.storage.sync.set({ [key]: value }).catch(() => {});
 
-    chrome.tabs
-      .query({ active: true, currentWindow: true })
-      .then((tabs) => {
-        if (!tabs || !tabs[0]) return;
-        chrome.tabs
-          .sendMessage(tabs[0].id, {
-            type: "settings-update",
-            patch: { [key]: value },
-          })
-          .catch(() => {});
-      })
-      .catch(() => {});
+    getTargetTab((tab) => {
+      if (!tab || !tab.id) return;
+      chrome.tabs
+        .sendMessage(tab.id, {
+          type: "settings-update",
+          patch: { [key]: value },
+        })
+        .catch(() => {});
+    });
   }
 
   function formatZoom(val) {

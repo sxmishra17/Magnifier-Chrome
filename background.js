@@ -5,8 +5,7 @@ const tabEnabled = new Map();
 
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === "install") {
-    // "enabled" is intentionally omitted — it is tab-local, not shared
-    chrome.storage.sync.set({ zoom: 1.5, lensSize: "medium", lensPosition: "right", lensShape: "rect", language: "auto" });
+    chrome.storage.sync.set({ zoom: 1.5, lensSize: "medium", lensPosition: "right", lensShape: "rect", language: "auto", enabled: false });
   }
 
   // Automatically open "What's New" page on install or update
@@ -64,9 +63,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
 
-  // Content script toggled via Ctrl+M — sync background map (no relay needed)
+  // Content script toggled via Ctrl+M — sync background map & storage
   if (msg.type === "set-enabled" && sender && sender.tab) {
     tabEnabled.set(sender.tab.id, msg.enabled);
+    chrome.storage.sync.set({ enabled: msg.enabled }).catch(() => {});
     sendResponse({ ok: true });
     return true;
   }

@@ -56,7 +56,7 @@
         bindEvents();
       });
 
-    // ── React to storage changes (zoom and lensSize only; enabled is tab-local) ──
+    // ── React to storage changes (instant update across all settings) ──────
     chrome.storage.onChanged.addListener((changes, area) => {
       if (area !== "sync") return;
 
@@ -64,13 +64,24 @@
       if (changes.lensSize)     settings.lensSize     = changes.lensSize.newValue;
       if (changes.lensPosition) settings.lensPosition = changes.lensPosition.newValue;
       if (changes.lensShape)    settings.lensShape    = changes.lensShape.newValue;
-      // "enabled" is intentionally ignored here — it is managed per-tab via
-      // direct messages only, so other tabs are never affected.
+      if (changes.enabled !== undefined) {
+        settings.enabled = !!changes.enabled.newValue;
+        applyEnabledStyle();
+        if (settings.enabled) {
+          const targetX = (mouseX > 0 || mouseY > 0) ? mouseX : Math.round(window.innerWidth / 2);
+          const targetY = (mouseX > 0 || mouseY > 0) ? mouseY : Math.round(window.innerHeight / 2);
+          positionLens(targetX, targetY);
+          magnifyAt(targetX, targetY);
+          showLens();
+        } else {
+          hideLens();
+        }
+      }
       if (lensEl) applyLensSize();
     });
 
     // ── React to direct messages from popup (instant update) ────────────────
-    chrome.runtime.onMessage.addListener((msg) => {
+    chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       if (!msg || msg.type !== "settings-update") return;
       const p = msg.patch || {};
 
@@ -79,18 +90,22 @@
       if (p.lensPosition !== undefined) settings.lensPosition = p.lensPosition;
       if (p.lensShape !== undefined)    settings.lensShape    = p.lensShape;
       if (p.enabled !== undefined) {
-        settings.enabled = p.enabled;
+        settings.enabled = !!p.enabled;
         applyEnabledStyle();
         if (!settings.enabled) {
           hideLens();
-          return;
+        } else {
+          // Show the lens immediately at the last known mouse position or screen center
+          const targetX = (mouseX > 0 || mouseY > 0) ? mouseX : Math.round(window.innerWidth / 2);
+          const targetY = (mouseX > 0 || mouseY > 0) ? mouseY : Math.round(window.innerHeight / 2);
+          positionLens(targetX, targetY);
+          magnifyAt(targetX, targetY);
+          showLens();
         }
-        // Show the lens immediately at the last known mouse position
-        positionLens(mouseX, mouseY);
-        magnifyAt(mouseX, mouseY);
-        showLens();
       }
       if (lensEl) applyLensSize();
+      if (sendResponse) sendResponse({ ok: true });
+      return true;
     });
   }
 
@@ -331,8 +346,12 @@
     }
 
     if (!text) {
-      contentEl.textContent = "";
-      return;
+      const sample = document.querySelector("h1, h2, h3, p, article, main, header, a, span");
+      if (sample && sample.textContent && sample.textContent.trim()) {
+        text = sample.textContent.trim().replace(/\s+/g, " ").slice(0, 60);
+      } else {
+        text = "Magnifier Active (Ctrl+M)";
+      }
     }
 
     const zoomedSize = Math.min(fontSize * settings.zoom, 72);
@@ -353,6 +372,10 @@
   // ─── Position lens relative to cursor ───────────────────────────────────────
 
   function positionLens(x, y) {
+    if (x <= 0 && y <= 0) {
+      x = Math.round(window.innerWidth / 2);
+      y = Math.round(window.innerHeight / 2);
+    }
     const { w: lw, h: lh } = getLensDimensions();
     const gap = 14; // px between cursor and lens edge
     const vpW = window.innerWidth;
@@ -495,7 +518,8 @@
         } else {
           hideLens();
         }
-        // Sync background so popup reflects correct state
+        // Sync storage and background so popup reflects correct state
+        chrome.storage.sync.set({ enabled: newEnabled }).catch(() => {});
         try { chrome.runtime.sendMessage({ type: "set-enabled", enabled: newEnabled }).catch(() => {}); } catch (e) {}
         return;
       }
@@ -503,6 +527,7 @@
         settings.enabled = false;
         applyEnabledStyle();
         hideLens();
+        chrome.storage.sync.set({ enabled: false }).catch(() => {});
         try { chrome.runtime.sendMessage({ type: "set-enabled", enabled: false }).catch(() => {}); } catch (e) {}
       }
     });
