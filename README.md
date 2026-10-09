@@ -75,8 +75,7 @@ Both the Windows app and the Chrome extension feature complete localization:
 ```
 ├── Magnifier.exe               # Standalone Windows Desktop Executable
 ├── Magnifier-Desktop.zip       # Windows Desktop Package (Magnifier.exe inside)
-├── magnifier-chrome-1.3.0.zip  # Packaged Chrome Extension (v1.3.0)
-├── magnifier-chrome.zip        # Chrome Web Store Package
+├── magnifier-chrome-1.3.0.zip  # Packaged Chrome Extension (Chrome Web Store package)
 ├── package-extension.bat       # Chrome extension packager script
 ├── build.bat                   # Windows application C# compiler script
 ├── manifest.json               # Chrome WebExtension MV3 Manifest
@@ -98,12 +97,15 @@ Both the Windows app and the Chrome extension feature complete localization:
 │   ├── viewer.js               # PDF rendering with magnifier integration
 │   ├── pdf.min.js              # Bundled PDF.js engine (no remote scripts)
 │   └── pdf.worker.min.js       # Bundled PDF.js Web Worker
+├── docs/                       # GitHub Pages documentation & privacy policy
+│   ├── index.html              # Project landing page
+│   └── privacy-policy.html     # Hosted Privacy Policy for Chrome Web Store
 ├── icons/                      # Extension icons (48, 96, 128px) & yuvatechlogo.png
 └── src/                        # C# Desktop App Source Code
     ├── Program.cs              # Entry point & Tray NotifyIcon
     ├── MagnifierLens.cs        # Layered window GDI+ screen capture lens
     ├── SettingsForm.cs         # Settings panel GUI with donate buttons
-    ├── AboutDialog.cs          # Company modal with Visit Us & GitHub Link
+    ├── AboutDialog.cs          # Company modal with Chrome & Firefox links
     ├── Localization.cs        # C# Multi-language engine
     ├── HotkeyRecorderDialog.cs # Global hotkey configuration dialog
     ├── PdfViewerForm.cs        # Desktop PDF viewer integration
@@ -127,6 +129,9 @@ Both the Windows app and the Chrome extension feature complete localization:
 
 ---
 
-## 📄 License
+## 👨‍💻 Developer & Company
 
-All Rights Reserved © 2026 Yuvatech Solution USA, LLC.
+Developed by **Satish Mishra**  
+**Yuvatech Solution USA, LLC**  
+All Rights Reserved © 2026.
+

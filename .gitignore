@@ -8,6 +8,11 @@
 # Screenshots / asset generators
 screenshots/
 
+# Backup & Redundant Archives
+*-backup*.zip
+*backup*.zip
+magnifier-chrome.zip
+
 # IDE & Editor files
 .vs/
 .vscode/
