@@ -92,7 +92,7 @@ namespace MagnifierApp
             // View Other Extensions Button
             Button btnExtensions = new Button
             {
-                Text = "🧩 View Other Extensions on Firefox",
+                Text = "🧩 View Other Extensions for Chrome",
                 Location = new Point(22, curY),
                 Size = new Size(btnW, btnH),
                 FlatStyle = FlatStyle.Flat,
@@ -106,7 +106,7 @@ namespace MagnifierApp
             {
                 try
                 {
-                    Process.Start("https://addons.mozilla.org/en-US/firefox/user/14938505/");
+                    Process.Start("https://chrome-stats.com/a/c2F0aXNobWlzaHJhMTc");
                 }
                 catch { }
             };
