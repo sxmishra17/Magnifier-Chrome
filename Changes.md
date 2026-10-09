@@ -1,0 +1,12 @@
+# Project Changes Log
+
+[2026-10-08] --> [magnifier-chrome-backup-v1.1.0.zip] --> [Archived pre-upgrade Chrome extension into separate zip archive] --> [Preserved full backup of previous v1.1.0 release before v1.3.0 changes]
+[2026-10-08] --> [manifest.json] --> [Bumped to v1.3.0, updated author to Satish Mishra, added tabs permission and MV3 web_accessible_resources] --> [Synchronized version with Firefox release and enabled localized resources]
+[2026-10-08] --> [background.js] --> [Added language default auto-detect and automatic What's New release page display on install/update] --> [Enabled smooth onboarding and localized settings persistence]
+[2026-10-08] --> [locales.js] --> [Added comprehensive 11+ language dictionary] --> [Enabled localization across extension popup, PDF viewer, and release notes]
+[2026-10-08] --> [popup/popup.html, popup/popup.css, popup/popup.js] --> [Applied warm amber dark layout, Ctrl+M banner, language selector, desktop download button, company website link, What's New info button, and PayPal + BMC contribute buttons] --> [Synchronized rich settings GUI, donation channels, and branding with Firefox release]
+[2026-10-08] --> [whats-new/whats-new.html, whats-new/whats-new.css, whats-new/whats-new.js] --> [Added What's New release page with features overview, desktop download, Chrome Web Store rating, PayPal, and BMC links] --> [Enhanced user engagement, community support, and release communication]
+[2026-10-08] --> [pdf-viewer/viewer.html, pdf-viewer/viewer.js, pdf-viewer/pdf.min.js, pdf-viewer/pdf.worker.min.js] --> [Bundled local pdf.js and worker scripts, applied localization support] --> [Ensured offline PDF magnification compliant with Chrome Web Store policies]
+[2026-10-08] --> [Magnifier.exe, Magnifier-Desktop.zip, src/, build.bat, app.ico] --> [Added standalone portable Windows desktop app with Yuvatech Solution USA, LLC branding, About dialog pointing to Magnifier-Chrome, and direct download zip] --> [Provided seamless cross-platform magnification outside browser]
+[2026-10-08] --> [package-extension.bat, magnifier-chrome-1.3.0.zip, magnifier-chrome.zip] --> [Created packaging script and compiled production extension distribution archives] --> [Prepared verified packages for Chrome Web Store publication]
+[2026-10-08] --> [README.md] --> [Updated documentation with v1.3.0 features, quick download links, Yuvatech Solution USA, LLC branding, donation options, and repository tree] --> [Maintained comprehensive and accurate documentation]

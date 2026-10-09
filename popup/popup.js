@@ -1,48 +1,136 @@
-// popup.js – Settings panel
+// popup.js – Settings panel with multi-language localization (Chrome MV3)
 
 (function () {
   "use strict";
 
-  const zoomSlider   = document.getElementById("zoomSlider");
-  const zoomBadge    = document.getElementById("zoomBadge");
-  const sizeSlider   = document.getElementById("sizeSlider");
-  const sizeBadge    = document.getElementById("sizeBadge");
-  const enableToggle = document.getElementById("enableToggle");
-  const posRadios    = document.querySelectorAll("input[name='lensPos']");
-  const shapeRadios  = document.querySelectorAll("input[name='lensShape']");
+  const zoomSlider    = document.getElementById("zoomSlider");
+  const zoomBadge     = document.getElementById("zoomBadge");
+  const sizeSlider    = document.getElementById("sizeSlider");
+  const sizeBadge     = document.getElementById("sizeBadge");
+  const enableToggle  = document.getElementById("enableToggle");
+  const posRadios     = document.querySelectorAll("input[name='lensPos']");
+  const shapeRadios   = document.querySelectorAll("input[name='lensShape']");
   const openPdfViewer = document.getElementById("openPdfViewer");
+  const langSelect    = document.getElementById("langSelect");
 
-  const SIZE_LABELS  = { 1: "Small", 2: "Medium", 3: "Large" };
+  const SIZE_KEYS    = { 1: "small", 2: "medium", 3: "large" };
   const SIZE_TO_INT  = { small: 1, medium: 2, large: 3 };
   const INT_TO_SIZE  = { 1: "small", 2: "medium", 3: "large" };
 
+  let currentSettings = {
+    zoom: 1.5,
+    lensSize: "medium",
+    lensPosition: "right",
+    lensShape: "rect",
+    language: "auto"
+  };
+
+  // Populate Language dropdown
+  if (langSelect && window.I18N) {
+    langSelect.innerHTML = "";
+    for (const [code, name] of Object.entries(window.I18N.SUPPORTED_LANGUAGES)) {
+      const opt = document.createElement("option");
+      opt.value = code;
+      opt.textContent = name;
+      langSelect.appendChild(opt);
+    }
+  }
+
   // ── Load current settings on popup open ─────────────────────────────────
 
-  // Shared settings (zoom, lensSize) come from sync storage.
-  // enabled is tab-local — query the background for the active tab's state.
   chrome.tabs
     .query({ active: true, currentWindow: true })
     .then((tabs) => {
       const tabId = tabs && tabs[0] ? tabs[0].id : null;
-      const fromStorage = chrome.storage.sync.get({ zoom: 1.5, lensSize: "medium", lensPosition: "right", lensShape: "rect" });
+      const fromStorage = chrome.storage.sync.get({
+        zoom: 1.5,
+        lensSize: "medium",
+        lensPosition: "right",
+        lensShape: "rect",
+        language: "auto"
+      });
       const fromBg = tabId != null
-        ? chrome.runtime.sendMessage({ type: "get-tab-enabled", tabId })
+        ? chrome.runtime.sendMessage({ type: "get-tab-enabled", tabId }).catch(() => ({ enabled: false }))
         : Promise.resolve({ enabled: false });
 
       return Promise.all([fromStorage, fromBg]).then(([s, bg]) => {
+        currentSettings = s;
+
+        // Apply language
+        if (window.I18N) {
+          window.I18N.setLanguage(s.language || "auto");
+          if (langSelect) langSelect.value = s.language || "auto";
+          applyTranslations();
+        }
+
         zoomSlider.value      = s.zoom;
-        enableToggle.checked  = bg.enabled;
+        enableToggle.checked  = !!(bg && bg.enabled);
         zoomBadge.textContent = formatZoom(s.zoom);
         updateSliderTrack(s.zoom);
+
         const sizeInt       = SIZE_TO_INT[s.lensSize] || 2;
         sizeSlider.value    = sizeInt;
-        sizeBadge.textContent = SIZE_LABELS[sizeInt];
+        updateSizeBadge(sizeInt);
         updateSizeTrack(sizeInt);
+
         posRadios.forEach((r)  => { r.checked = r.value === s.lensPosition; });
         shapeRadios.forEach((r) => { r.checked = r.value === s.lensShape; });
       });
     })
     .catch(() => {});
+
+  // ── Apply Translations ──────────────────────────────────────────────────
+
+  function applyTranslations() {
+    if (!window.I18N) return;
+    const t = window.I18N.t;
+
+    const setTxt = (id, key) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = t(key);
+    };
+
+    setTxt("txtAppTitle", "appTitle");
+    setTxt("txtSubtitle", "subtitle");
+    setTxt("txtZoomLevel", "zoomLevel");
+    setTxt("txtLensSize", "lensSize");
+    setTxt("txtSizeSmall", "small");
+    setTxt("txtSizeMedium", "medium");
+    setTxt("txtSizeLarge", "large");
+    setTxt("txtLensShape", "lensShape");
+    setTxt("txtCircle", "circle");
+    setTxt("txtRectangle", "rectangle");
+    setTxt("txtLensPos", "lensPosition");
+    setTxt("txtLanguage", "language");
+    setTxt("txtPressHotkey", "pressHotkey");
+    setTxt("txtDownloadDesktop", "downloadDesktop");
+    setTxt("txtSavedAuto", "savedAuto");
+    if (openPdfViewer) openPdfViewer.textContent = t("openPdfViewer");
+
+    const curSizeInt = parseInt(sizeSlider.value, 10) || 2;
+    updateSizeBadge(curSizeInt);
+  }
+
+  function updateSizeBadge(sizeInt) {
+    const key = SIZE_KEYS[sizeInt] || "medium";
+    if (window.I18N) {
+      sizeBadge.textContent = window.I18N.t(key);
+    }
+  }
+
+  // ── Language Selector ────────────────────────────────────────────────────
+
+  if (langSelect) {
+    langSelect.addEventListener("change", () => {
+      const lang = langSelect.value;
+      currentSettings.language = lang;
+      if (window.I18N) {
+        window.I18N.setLanguage(lang);
+        applyTranslations();
+      }
+      saveAndSend("language", lang);
+    });
+  }
 
   // ── Zoom slider ──────────────────────────────────────────────────────────
 
@@ -57,7 +145,7 @@
 
   sizeSlider.addEventListener("input", () => {
     const val = parseInt(sizeSlider.value, 10);
-    sizeBadge.textContent = SIZE_LABELS[val];
+    updateSizeBadge(val);
     updateSizeTrack(val);
     saveAndSend("lensSize", INT_TO_SIZE[val]);
   });
@@ -78,7 +166,7 @@
     });
   });
 
-  // ── Enable / disable toggle (tab-local — only affects this tab) ──────────
+  // ── Enable / disable toggle (tab-local) ──────────────────────────────────
 
   enableToggle.addEventListener("change", () => {
     chrome.tabs
@@ -99,20 +187,74 @@
   if (openPdfViewer) {
     openPdfViewer.addEventListener("click", () => {
       const url = chrome.runtime.getURL("pdf-viewer/viewer.html");
-      chrome.tabs.create({ url }).catch(() => {});
+      chrome.tabs.create({ url });
+      window.close();
+    });
+  }
+
+  // ── Direct download desktop executable zip (Magnifier.exe) ────────────────
+
+  const downloadDesktopBtn = document.getElementById("downloadDesktopBtn");
+  if (downloadDesktopBtn) {
+    downloadDesktopBtn.addEventListener("click", () => {
+      const directUrl = "https://raw.githubusercontent.com/sxmishra17/Magnifier-Chrome/main/Magnifier-Desktop.zip";
+      const a = document.createElement("a");
+      a.href = directUrl;
+      a.download = "Magnifier-Desktop.zip";
+      a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    });
+  }
+
+  // ── Open What's New Release Notes page ──────────────────────────────────
+
+  const btnWhatsNew = document.getElementById("btnWhatsNew");
+  if (btnWhatsNew) {
+    btnWhatsNew.addEventListener("click", () => {
+      const url = chrome.runtime.getURL("whats-new/whats-new.html");
+      chrome.tabs.create({ url });
+      window.close();
+    });
+  }
+
+  // ── Company website ──────────────────────────────────────────────────────
+
+  const btnCompanyWebsite = document.getElementById("btnCompanyWebsite");
+  if (btnCompanyWebsite) {
+    btnCompanyWebsite.addEventListener("click", () => {
+      chrome.tabs.create({ url: "https://yuvatechsolutionsusa.com" });
+      window.close();
+    });
+  }
+
+  // ── Donate via PayPal ────────────────────────────────────────────────────
+
+  const btnDonatePaypal = document.getElementById("btnDonatePaypal");
+  if (btnDonatePaypal) {
+    btnDonatePaypal.addEventListener("click", () => {
+      const url = "https://www.paypal.com/donate/?business=YMZRV5ZW4QJ8U&no_recurring=0&item_name=I+love+to+serve+the+community+for+betterment.+A+small+contribution+can+get+the+development+going+free+of+charge.&currency_code=USD";
+      chrome.tabs.create({ url });
+      window.close();
+    });
+  }
+
+  // ── Buy Me a Coffee ──────────────────────────────────────────────────────
+
+  const btnDonateBmc = document.getElementById("btnDonateBmc");
+  if (btnDonateBmc) {
+    btnDonateBmc.addEventListener("click", () => {
+      chrome.tabs.create({ url: "https://buymeacoffee.com/satishmishra17" });
       window.close();
     });
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
 
-  // saveAndSend: for shared settings (zoom, lensSize) only.
-  // "enabled" is handled separately via set-tab-enabled message.
   function saveAndSend(key, value) {
-    // 1) Persist shared setting to sync storage
-    chrome.storage.sync.set({ [key]: value });
+    chrome.storage.sync.set({ [key]: value }).catch(() => {});
 
-    // 2) Also send a direct message for instant response on the current tab
     chrome.tabs
       .query({ active: true, currentWindow: true })
       .then((tabs) => {

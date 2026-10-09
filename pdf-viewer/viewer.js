@@ -7,13 +7,34 @@
   const clearBtn = document.getElementById("clearBtn");
   const emptyState = document.getElementById("emptyState");
   const pdfContainer = document.getElementById("pdfContainer");
+  const pdfBrand = document.getElementById("pdfBrand");
+  const lblChoosePdf = document.getElementById("lblChoosePdf");
+  const pdfHint = document.getElementById("pdfHint");
 
   let activeObjectUrl = null;
   let activePdfDoc = null;
   let renderToken = 0;
 
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    chrome.runtime.getURL("pdf-viewer/lib/pdf.worker.min.js");
+  // Apply localization
+  if (window.I18N && chrome && chrome.storage) {
+    chrome.storage.sync.get({ language: "auto" }, (s) => {
+      window.I18N.setLanguage((s && s.language) || "auto");
+      applyPdfTranslations();
+    });
+  }
+
+  function applyPdfTranslations() {
+    if (!window.I18N) return;
+    const t = window.I18N.t;
+    if (pdfBrand) pdfBrand.textContent = t("pdfBrand");
+    if (lblChoosePdf) lblChoosePdf.textContent = t("choosePdf");
+    if (clearBtn) clearBtn.textContent = t("clear");
+    if (pdfHint) pdfHint.textContent = t("pdfHint");
+    if (emptyState) emptyState.textContent = t("pdfEmpty");
+    document.title = t("pdfBrand");
+  }
+
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "pdf.worker.min.js";
 
   fileInput.addEventListener("change", async (event) => {
     const file = event.target.files && event.target.files[0];
@@ -69,7 +90,11 @@
     fileInput.value = "";
     clearPages();
     emptyState.style.display = "block";
-    emptyState.textContent = "Select a PDF file to render it here.";
+    if (window.I18N) {
+      emptyState.textContent = window.I18N.t("pdfEmpty");
+    } else {
+      emptyState.textContent = "Select a PDF file to render it here.";
+    }
   });
 
   function clearPages() {

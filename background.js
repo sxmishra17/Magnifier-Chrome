@@ -6,7 +6,13 @@ const tabEnabled = new Map();
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === "install") {
     // "enabled" is intentionally omitted — it is tab-local, not shared
-    chrome.storage.sync.set({ zoom: 1.5, lensSize: "medium", lensPosition: "right", lensShape: "rect" });
+    chrome.storage.sync.set({ zoom: 1.5, lensSize: "medium", lensPosition: "right", lensShape: "rect", language: "auto" });
+  }
+
+  // Automatically open "What's New" page on install or update
+  if (details.reason === "install" || details.reason === "update") {
+    const whatsNewUrl = chrome.runtime.getURL("whats-new/whats-new.html");
+    chrome.tabs.create({ url: whatsNewUrl }).catch(() => {});
   }
 });
 

@@ -1,17 +1,24 @@
-# Build artifacts
-*.zip
-*.crx
+# .gitignore for Magnifier Chrome Extension & Desktop App
 
-# Screenshots / asset generators (development tools, not part of the extension)
+# Debug & Temporary Build Outputs
+*.log
+*.tmp
+*.bak
+
+# Screenshots / asset generators
 screenshots/
 
-# OS files
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# Editor files
+# IDE & Editor files
+.vs/
 .vscode/
+.idea/
+*.suo
+*.user
 *.swp
 *.swo
 *~
+
+# OS Metadata
+Thumbs.db
+desktop.ini
+.DS_Store
