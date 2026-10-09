@@ -23,7 +23,7 @@
 - 🎯 **Flicker-Free 60 FPS Real-Time Screen Lens** — Powered by GDI+ layered rendering with native `WDA_EXCLUDEFROMCAPTURE` exclusion.
 - ⌨️ **System-Wide Global Hotkey (`Ctrl+M`)** — Toggle the lens anywhere across Windows. Includes an interactive Hotkey Recorder dialog.
 - 📌 **System Tray Toolbar Integration** — Minimizes cleanly to the system tray taskbar menu.
-- 🏢 **Enhanced About Dialog** — Includes direct navigation buttons to **Visit Us (yuvatechsolutionsusa.com)**, **View Other Extensions for Chrome**, and the **GitHub Repository**.
+- 🏢 **Enhanced About Dialog** — Includes direct navigation buttons to **Visit Us (yuvatechsolutionsusa.com)**, **View Other Extensions for Chrome**, **View Other Extensions on Firefox**, and the **GitHub Repository**.
 - ☕ **Contribute & Support Options** — Integrated PayPal and Buy Me a Coffee support buttons in the Settings window.
 - 🌐 **Multi-Language Auto-Detection** — System language default on initial startup with support for 11+ languages.
 
@@ -46,6 +46,7 @@ If you find Magnifier helpful, consider supporting its continued development:
 - 💳 **[Donate with PayPal](https://www.paypal.com/donate/?business=YMZRV5ZW4QJ8U&no_recurring=0&item_name=I+love+to+serve+the+community+for+betterment.+A+small+contribution+can+get+the+development+going+free+of+charge.&currency_code=USD)**
 - ⭐ **[Rate on Chrome Web Store](https://chrome.google.com/webstore)**
 - 🧩 **[Explore Other Extensions on Chrome](https://chrome-stats.com/a/c2F0aXNobWlzaHJhMTc)**
+- 🦊 **[Explore Other Extensions on Firefox](https://addons.mozilla.org/en-US/firefox/user/14938505/)**
 
 ---
 

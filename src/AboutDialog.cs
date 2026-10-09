@@ -89,10 +89,34 @@ namespace MagnifierApp
             Controls.Add(btnWebsite);
             curY += 36;
 
-            // View Other Extensions Button
-            Button btnExtensions = new Button
+            // View Other Extensions for Chrome Button
+            Button btnChrome = new Button
             {
                 Text = "🧩 View Other Extensions for Chrome",
+                Location = new Point(22, curY),
+                Size = new Size(btnW, btnH),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Color.FromArgb(13, 148, 136), // Teal #0d9488
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 9f, FontStyle.Bold),
+                Cursor = Cursors.Hand
+            };
+            btnChrome.FlatAppearance.BorderSize = 0;
+            btnChrome.Click += (s, e) =>
+            {
+                try
+                {
+                    Process.Start("https://chrome-stats.com/a/c2F0aXNobWlzaHJhMTc");
+                }
+                catch { }
+            };
+            Controls.Add(btnChrome);
+            curY += 36;
+
+            // View Other Extensions on Firefox Button
+            Button btnFirefox = new Button
+            {
+                Text = "🦊 View Other Extensions on Firefox",
                 Location = new Point(22, curY),
                 Size = new Size(btnW, btnH),
                 FlatStyle = FlatStyle.Flat,
@@ -101,16 +125,16 @@ namespace MagnifierApp
                 Font = new Font("Segoe UI", 9f, FontStyle.Bold),
                 Cursor = Cursors.Hand
             };
-            btnExtensions.FlatAppearance.BorderSize = 0;
-            btnExtensions.Click += (s, e) =>
+            btnFirefox.FlatAppearance.BorderSize = 0;
+            btnFirefox.Click += (s, e) =>
             {
                 try
                 {
-                    Process.Start("https://chrome-stats.com/a/c2F0aXNobWlzaHJhMTc");
+                    Process.Start("https://addons.mozilla.org/en-US/firefox/user/14938505/");
                 }
                 catch { }
             };
-            Controls.Add(btnExtensions);
+            Controls.Add(btnFirefox);
             curY += 36;
 
             // GitHub Link Button
